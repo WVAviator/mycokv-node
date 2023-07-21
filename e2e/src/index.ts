@@ -1,7 +1,10 @@
 import { MycoKV } from "mycokv-node";
 
 const testBasicCommands = async () => {
-    const myco = await MycoKV.connect("http://127.0.0.1:6922");
+    const myco = await MycoKV.connect({
+        host: "localhost",
+        port: 6922,
+    });
 
     console.log("Testing basic commands...");
 

@@ -1,4 +1,7 @@
 import net from "net";
+import ConnectionOptions, {
+    mergeDefaultConnectionOptions,
+} from "./ConnectionOptions";
 
 export default class MycoKV {
     private responseResolver:
@@ -8,14 +11,15 @@ export default class MycoKV {
     private host: string;
     private port: number;
 
-    private constructor(private connectionString: string) {
-        const [host, port] = connectionString.replace("http://", "").split(":");
-        this.host = host;
-        this.port = parseInt(port);
+    private constructor(connectionOptions: ConnectionOptions) {
+        this.host = connectionOptions.host;
+        this.port = connectionOptions.port;
     }
 
-    public static async connect(connectionString: string): Promise<MycoKV> {
-        const myco = new MycoKV(connectionString);
+    public static async connect(
+        options?: Partial<ConnectionOptions>
+    ): Promise<MycoKV> {
+        const myco = new MycoKV(mergeDefaultConnectionOptions(options));
         await myco.establishConnection();
         myco.addListeners();
         return myco;
