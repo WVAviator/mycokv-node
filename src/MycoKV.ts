@@ -63,7 +63,7 @@ export default class MycoKV {
     public async get(key: string): Promise<unknown> {
         const keyParts = key.split(".");
         if (keyParts.length > 1 && keyParts.at(-1)?.startsWith("*")) {
-            const responseJson = await this.sendCommand(`GET ${key}`);
+            const responseJson = await this.sendCommand(`GET ${key}\n`);
             try {
                 const response = JSON.parse(responseJson);
                 return response;
@@ -130,17 +130,20 @@ export default class MycoKV {
     }
 
     private parseValue(value: string): string | number | boolean | null {
+        value = value.slice(0, -1);
+
         if (value === "null") return null;
         if (value === "true") return true;
         if (value === "false") return false;
-        if (value.startsWith('"') && value.endsWith('"')) {
-            return value.slice(1, -1);
-        }
+        // if (value.startsWith('"') && value.endsWith('"')) {
+        //     return value.slice(1, -1);
+        // }
         if (value.match(/^-?\d+$/)) return parseInt(value);
         if (value.match(/^-?\d+\.\d+$/)) return parseFloat(value);
-        throw new ValueTypeError(
-            value,
-            "Invalid value type returned by MycoKV server."
-        );
+        return value;
+        // throw new ValueTypeError(
+        //     value,
+        //     "Invalid value type returned by MycoKV server."
+        // );
     }
 }
