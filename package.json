@@ -1,0 +1,18 @@
+{
+  "name": "mycokv-node",
+  "version": "0.0.1",
+  "description": "A Node.js driver for MycoKV",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "scripts": {
+      "build:esm": "tsc",
+      "build:cjs": "tsc --module commonjs --outdir lib/cjs",
+      "build": "yarn build:esm && yarn build:cjs"
+  },
+  "author": "WVAviator",
+  "license": "MIT",
+  "files": [
+      "/dist"
+  ]
+}
