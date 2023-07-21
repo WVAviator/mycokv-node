@@ -2,6 +2,7 @@ import net from "net";
 import ConnectionOptions, {
     mergeDefaultConnectionOptions,
 } from "./ConnectionOptions";
+import ConnectionError from "./ConnectionError";
 
 export default class MycoKV {
     private responseResolver:
@@ -20,45 +21,41 @@ export default class MycoKV {
         options?: Partial<ConnectionOptions>
     ): Promise<MycoKV> {
         const myco = new MycoKV(mergeDefaultConnectionOptions(options));
-        await myco.establishConnection();
-        myco.addListeners();
-        return myco;
+        try {
+            await myco.establishConnection();
+            return myco;
+        } catch (err) {
+            throw new ConnectionError();
+        }
     }
 
     private establishConnection(): Promise<void> {
         return new Promise((resolve, reject) => {
-            try {
-                this.client = net.createConnection(
-                    { host: this.host, port: this.port },
-                    () => {
-                        console.log(
-                            `Successfully connected to MycoKV at ${this.host}:${this.port}`
-                        );
+            this.client = net.createConnection(
+                { host: this.host, port: this.port },
+                () => {
+                    console.log(
+                        `Successfully connected to MycoKV at ${this.host}:${this.port}`
+                    );
 
-                        setTimeout(resolve, 1000);
-                    }
-                );
-            } catch (err) {
-                console.log(err);
+                    setTimeout(resolve, 1000);
+                }
+            );
+
+            this.client.on("data", (data) => {
+                if (this.responseResolver) {
+                    this.responseResolver(data.toString());
+                    this.responseResolver = null;
+                }
+            });
+
+            this.client.on("end", () => {
+                console.log("MycoKV connection terminated.");
+            });
+
+            this.client.on("error", (err) => {
                 reject(err);
-            }
-        });
-    }
-
-    private addListeners(): void {
-        this.client.on("data", (data) => {
-            if (this.responseResolver) {
-                this.responseResolver(data.toString());
-                this.responseResolver = null;
-            }
-        });
-
-        this.client.on("end", () => {
-            console.log("MycoKV connection terminated.");
-        });
-
-        this.client.on("error", (err) => {
-            console.log(err);
+            });
         });
     }
 
