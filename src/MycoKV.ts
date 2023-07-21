@@ -2,7 +2,8 @@ import net from "net";
 import ConnectionOptions, {
     mergeDefaultConnectionOptions,
 } from "./ConnectionOptions";
-import ConnectionError from "./ConnectionError";
+import ConnectionError from "./errors/ConnectionError";
+import ValueTypeError from "./errors/ValueTypeError";
 
 export default class MycoKV {
     private responseResolver:
@@ -59,20 +60,39 @@ export default class MycoKV {
         });
     }
 
-    public async get(key: string): Promise<string> {
-        //TODO: Handle nested keys and json return values
+    public async get(key: string): Promise<unknown> {
+        const keyParts = key.split(".");
+        if (keyParts.length > 1 && keyParts.at(-1)?.startsWith("*")) {
+            const responseJson = await this.sendCommand(`GET ${key}`);
+            try {
+                const response = JSON.parse(responseJson);
+                return response;
+            } catch (err) {
+                return responseJson;
+            }
+        }
         //TODO: Handle errors
-        return this.sendCommand(`GET ${key}\n`);
+        const response = await this.sendCommand(`GET ${key}\n`);
+        return this.parseValue(response);
     }
 
-    public async put(key: string, value: string): Promise<string> {
+    public async put<T extends string | number | boolean | null>(
+        key: string,
+        value: T
+    ): Promise<T> {
+        const response = await this.sendCommand(
+            `PUT ${key} ${this.stringifyValue(value)}\n`
+        );
+
         //TODO: Handle errors
-        return this.sendCommand(`PUT ${key} "${value}"\n`);
+
+        return this.parseValue(response) as T;
     }
 
-    public async delete(key: string): Promise<string> {
+    public async delete(key: string): Promise<unknown> {
         //TODO: Handle errors
-        return this.sendCommand(`DELETE ${key}\n`);
+        const value = await this.sendCommand(`DELETE ${key}\n`);
+        return this.parseValue(value);
     }
 
     public async disconnect(): Promise<void> {
@@ -91,5 +111,36 @@ export default class MycoKV {
             this.responseResolver = resolve;
             this.client.write(command);
         });
+    }
+
+    private stringifyValue(value: string | number | boolean | null) {
+        switch (typeof value) {
+            case "string":
+                return `"${value}"`;
+            case "number":
+                return value.toString();
+            case "boolean":
+                return value.toString();
+            case "object":
+                if (value === null) return "null";
+                throw new ValueTypeError(value);
+            default:
+                throw new ValueTypeError(value);
+        }
+    }
+
+    private parseValue(value: string): string | number | boolean | null {
+        if (value === "null") return null;
+        if (value === "true") return true;
+        if (value === "false") return false;
+        if (value.startsWith('"') && value.endsWith('"')) {
+            return value.slice(1, -1);
+        }
+        if (value.match(/^-?\d+$/)) return parseInt(value);
+        if (value.match(/^-?\d+\.\d+$/)) return parseFloat(value);
+        throw new ValueTypeError(
+            value,
+            "Invalid value type returned by MycoKV server."
+        );
     }
 }
