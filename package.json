@@ -1,22 +1,24 @@
 {
-  "name": "mycokv-node",
-  "version": "0.0.1",
-  "description": "A Node.js driver for MycoKV",
-  "main": "./lib/index.js",
-  "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "yarn build",
-    "setup:e2e": "yarn build && yarn link && cd e2e && yarn install && yarn link mycokv-node && cd ..",
-    "test:e2e": "(cd e2e && yarn start)"
-  },
-  "author": "WVAviator",
-  "license": "MIT",
-  "files": [
-    "/lib"
-  ],
-  "devDependencies": {
-    "@types/node": "^20.4.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
-  }
+    "name": "mycokv-node",
+    "version": "0.0.1",
+    "description": "A Node.js driver for MycoKV",
+    "main": "./lib/index.js",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "yarn build",
+        "test": "jest --detectOpenHandles --maxWorkers 1"
+    },
+    "author": "WVAviator",
+    "license": "MIT",
+    "files": [
+        "/lib"
+    ],
+    "devDependencies": {
+        "@types/node": "^20.4.2",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.1.6",
+        "@types/jest": "^29.5.3",
+        "ts-jest": "^29.1.1",
+        "jest": "^29.0.0"
+    }
 }
