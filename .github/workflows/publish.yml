@@ -8,6 +8,11 @@ on:
 jobs:
     publish-npm:
         runs-on: ubuntu-latest
+        services:
+            mycokv:
+                image: wvaviator/mycokv:latest
+                ports:
+                    - 6922:6922
         steps:
             - uses: actions/checkout@v3
 
