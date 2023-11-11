@@ -1,6 +1,6 @@
 {
   "name": "mycokv-node",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "A Node.js driver for MycoKV",
   "main": "./lib/index.js",
   "scripts": {
