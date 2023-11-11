@@ -1,0 +1,34 @@
+name: Publish Package
+
+on:
+    push:
+        tags:
+            - "v*"
+
+jobs:
+    publish-npm:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "16.x" # Use the version of Node.js that your project requires
+                  registry-url: "https://registry.npmjs.org/"
+
+            - run: yarn install
+
+            - name: Extract Version from Tag
+              run: |
+                  TAG_VERSION=${GITHUB_REF#refs/tags/v}
+                  echo "Extracted version: $TAG_VERSION"
+                  jq '.version="'$TAG_VERSION'"' package.json > temp.json && mv temp.json package.json
+
+            - name: Run Tests
+              run: yarn test
+
+            - name: Publish to npm
+              run: yarn publish --non-interactive --dry-run
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
