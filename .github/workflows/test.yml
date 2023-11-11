@@ -9,6 +9,11 @@ on:
 jobs:
     build:
         runs-on: ${{ matrix.os }}
+        services:
+            mycokv:
+                image: wvaviator/mycokv:latest
+                ports:
+                    - 6922:6922
         strategy:
             matrix:
                 node-version: [16.x, 18.x, 20.x]
