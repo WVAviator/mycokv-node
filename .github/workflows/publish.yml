@@ -23,15 +23,14 @@ jobs:
                   registry-url: "https://registry.npmjs.org/"
 
             - run: yarn install
+            - run: yarn build
+            - run: yarn test
 
             - name: Extract Version from Tag
               run: |
                   TAG_VERSION=${GITHUB_REF#refs/tags/v}
                   echo "Extracted version: $TAG_VERSION"
                   jq '.version="'$TAG_VERSION'"' package.json > temp.json && mv temp.json package.json
-
-            - name: Run Tests
-              run: yarn test
 
             - name: Publish to npm
               run: yarn publish --non-interactive --dry-run
