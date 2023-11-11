@@ -14,6 +14,10 @@ describe("key sanitization", () => {
         await myco.disconnect();
     });
 
+    afterEach(async () => {
+        await myco.purge();
+    });
+
     it("should allow valid keys for all methods", async () => {
         const keys = [
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -64,8 +68,6 @@ describe("key sanitization", () => {
         await expect(myco.get("foo.*")).resolves.toEqual({
             bar: "baz",
         });
-
-        await myco.delete("foo.bar");
     });
 
     it("should not allow invalid use of the nesting operator", async () => {

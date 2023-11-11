@@ -180,6 +180,14 @@ export default class MycoKV {
     }
 
     /**
+     * Processes a MycoKV PURGE operation. Deletes all keys in the database and erases the write-ahead log. This operation should be used with caution.
+     */
+    public async purge(): Promise<void> {
+        const response = await this.sendCommand(`PURGE\n`);
+        if (MycoKVError.hasError(response)) throw new MycoKVError(response);
+    }
+
+    /**
      * Disconnects this MycoKV client from the MycoKV server. This operation should always be performed when you are finished using the client, otherwise the connection will remain open indefinitely.
      */
     public async disconnect(): Promise<void> {

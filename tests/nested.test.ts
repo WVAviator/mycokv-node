@@ -8,6 +8,8 @@ describe("nested keys get, put, delete", () => {
             host: "localhost",
             port: 6922,
         });
+
+        await myco.purge();
     });
 
     beforeEach(async () => {
@@ -19,11 +21,7 @@ describe("nested keys get, put, delete", () => {
     });
 
     afterEach(async () => {
-        await myco.delete("kitchen.cabinet.cups");
-        await myco.delete("kitchen.toaster.bread");
-        await myco.delete("kitchen.dishwasher.top_shelf.plates");
-        await myco.delete("kitchen.toaster");
-        await myco.delete("kitchen.dishwasher");
+        await myco.purge();
     });
 
     afterAll(async () => {
