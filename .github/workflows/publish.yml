@@ -21,8 +21,10 @@ jobs:
               with:
                   node-version: "16.x" # Use the version of Node.js that your project requires
                   registry-url: "https://registry.npmjs.org/"
+
             - name: Install Dependencies
               run: yarn install
+
             - name: Build and Test
               run: |
                   yarn build
@@ -35,7 +37,7 @@ jobs:
                   jq '.version="'$TAG_VERSION'"' package.json > temp.json && mv temp.json package.json
                   echo "Updated package.json version to $TAG_VERSION"
 
-            - name: Commit Version Bump
+            - name: Commmit Updated package.json
               run: |
                   git config user.name 'github-actions[bot]'
                   git config user.email 'github-actions[bot]@users.noreply.github.com'
@@ -46,7 +48,7 @@ jobs:
                   git push origin main
                   echo "Committed updated package.json file to active branch"
 
-            - name: Publish to npm
+            - name: Publish to NPM
               run: yarn publish --non-interactive
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
