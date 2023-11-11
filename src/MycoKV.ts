@@ -5,7 +5,8 @@ import ConnectionOptions, {
 import ConnectionError from "./errors/ConnectionError";
 import ValueTypeError from "./errors/ValueTypeError";
 import MycoKVError from "./errors/MycoKVError";
-import { PutOptions } from "./options/PutOptions";
+import PutOptions from "./options/PutOptions";
+import KeyFormatError from "./errors/KeyFormatError";
 
 /**
  * MycoKV client. Connect to a running MycoKV server and perform key/value database operations.
@@ -101,6 +102,7 @@ export default class MycoKV {
      * @returns The value of the key specified in the `key` parameter. The value will also be converted to the appropriate type (string, number, boolean, or null).
      */
     public async get(key: string): Promise<unknown> {
+        this.sanitizeKey(key);
         const keyParts = key.split(".");
         if (keyParts.length > 1 && keyParts.at(-1)?.startsWith("*")) {
             const responseJson = await this.sendCommand(`GET ${key}\n`);
@@ -131,6 +133,8 @@ export default class MycoKV {
         value: T,
         options: Partial<PutOptions> = {}
     ): Promise<T> {
+        this.sanitizeKey(key, false);
+
         const response = await this.sendCommand(
             `PUT ${key} ${this.stringifyValue(value)}\n`
         );
@@ -154,6 +158,7 @@ export default class MycoKV {
      * @param ttl The number of milliseconds from now until the key expires.
      */
     public async expire(key: string, ttl: number): Promise<void> {
+        this.sanitizeKey(key, false);
         const response = await this.sendCommand(`EXPIRE ${key} ${ttl}\n`);
         if (MycoKVError.hasError(response)) throw new MycoKVError(response);
     }
@@ -163,6 +168,7 @@ export default class MycoKV {
      * @param key The key to delete.
      */
     public async delete(key: string): Promise<void> {
+        this.sanitizeKey(key, false);
         const value = await this.sendCommand(`DELETE ${key}\n`);
         if (MycoKVError.hasError(value)) {
             const error = new MycoKVError(value);
@@ -216,5 +222,43 @@ export default class MycoKV {
         if (value.match(/^-?\d+\.\d+$/)) return parseFloat(value);
 
         return value.slice(1, -1);
+    }
+
+    private sanitizeKey(key: string, readOnly: boolean = true) {
+        // Matches any key that does not contain a whitespace character
+        const whitespaceRegex = /^([^\s])+$/;
+
+        // Matches any key that does not contain whitespace or an asterisk unless the asterisk follows a period at the end of the string. Can also be followed by an integer.
+        const wildcardRegex = /^([^\s\*])+(\.\*([0-9]*)$)*$/;
+
+        // Matches any key that does not contain an asterisk
+        const asteriskRegex = /^[^\*]*$/;
+
+        // Matches any key that does not start with, end with, or have consecutive periods contained within it
+        const periodRegex = /^(?!.*\.{2,})[^.].*[^.]$/;
+
+        if (!whitespaceRegex.test(key)) {
+            throw new KeyFormatError(
+                `Key cannot contain whitespace.\nProvided key: ${key}`
+            );
+        }
+
+        if (readOnly && !wildcardRegex.test(key)) {
+            throw new KeyFormatError(
+                `Key contains invalid use of the wildcard operator "*".\nCorrect usage is "key.*"\nProvided key: ${key}`
+            );
+        }
+
+        if (!readOnly && !asteriskRegex.test(key)) {
+            throw new KeyFormatError(
+                `The wildcard operator "*" cannot be used for write operations.\nProvided key: ${key}`
+            );
+        }
+
+        if (!periodRegex.test(key)) {
+            throw new KeyFormatError(
+                `Key cannot start with, end with, or contain consecutive periods.\nProvided key: ${key}`
+            );
+        }
     }
 }

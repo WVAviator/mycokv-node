@@ -1,4 +1,4 @@
-export interface PutOptions {
+export default interface PutOptions {
     /**
      * The number of milliseconds until the key expires.
      */
