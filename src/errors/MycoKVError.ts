@@ -30,7 +30,12 @@ class MycoKVError extends Error {
         Object.setPrototypeOf(this, MycoKVError.prototype);
     }
 
-    static hasError(message: string): boolean {
+    /**
+     * Checks if the returned string from MycoKV contains an error code at the beginning.
+     * @param message
+     * @returns
+     */
+    public static hasError(message: string): boolean {
         const code = message.slice(0, 3);
         return code in ERROR_CODES;
     }

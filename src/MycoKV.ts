@@ -1,12 +1,40 @@
 import net from "net";
 import ConnectionOptions, {
     mergeDefaultConnectionOptions,
-} from "./ConnectionOptions";
+} from "./options/ConnectionOptions";
 import ConnectionError from "./errors/ConnectionError";
 import ValueTypeError from "./errors/ValueTypeError";
 import MycoKVError from "./errors/MycoKVError";
 import { PutOptions } from "./options/PutOptions";
 
+/**
+ * MycoKV client. Connect to a running MycoKV server and perform key/value database operations.
+ * For more information on setting up a MycoKV server, see the [MycoKV documentation](https://github.com/WVAviator/myco-kv/tree/main#mycokv).
+ *
+ * ### Example Usage
+ * ```typescript
+ * import { MycoKV } from "mycokv-node";
+ *
+ * const myco = await MycoKV.connect({
+ *    host: "localhost",
+ *    port: 6922,
+ * });
+ *
+ * try {
+ *   await myco.put("foo", "bar");
+ *   const get = await myco.get("foo");
+ *   console.log(get); // "bar"
+ *
+ *   await myco.delete("foo");
+ *
+ * } catch (error) {
+ *  // Handle any potential server errors
+ * }
+ *
+ * await myco.disconnect();
+ *
+ * ```
+ */
 export default class MycoKV {
     private responseResolver:
         | ((value: string | PromiseLike<string>) => void)
@@ -20,6 +48,11 @@ export default class MycoKV {
         this.port = connectionOptions.port;
     }
 
+    /**
+     * Creates a new MycoKV client and connects to the MycoKV server at the host and port specified in the provided options object.
+     * @param options A ConnectionOptions object containing the host and port of the MycoKV server to connect to. Defaults to localhost:6922.
+     * @returns A MycoKV client instance.
+     */
     public static async connect(
         options?: Partial<ConnectionOptions>
     ): Promise<MycoKV> {
@@ -62,6 +95,11 @@ export default class MycoKV {
         });
     }
 
+    /**
+     * Processes a MycoKV GET operation. Returns the value of the key specified in the `key` parameter.
+     * @param key The key to retrieve the value of.
+     * @returns The value of the key specified in the `key` parameter. The value will also be converted to the appropriate type (string, number, boolean, or null).
+     */
     public async get(key: string): Promise<unknown> {
         const keyParts = key.split(".");
         if (keyParts.length > 1 && keyParts.at(-1)?.startsWith("*")) {
@@ -81,6 +119,13 @@ export default class MycoKV {
         return this.parseValue(response);
     }
 
+    /**
+     * Processes a MycoKV PUT operation. Sets the value of the key specified in the `key` parameter to the value specified in the `value` parameter.
+     * @param key The key to set the value of. Must be a string.
+     * @param value The value to set the key to. Can be a string, number, boolean, or null.
+     * @param options An optional object containing additional options for the PUT operation, including a TTL (time to live) value that will process an EXPIRE operation after the PUT operation is complete.
+     * @returns The value of the key specified in the `key` parameter. The value will also be converted to the appropriate type (string, number, boolean, or null).
+     */
     public async put<T extends string | number | boolean | null>(
         key: string,
         value: T,
@@ -103,11 +148,20 @@ export default class MycoKV {
         return this.parseValue(response) as T;
     }
 
+    /**
+     * Processes a MycoKV EXPIRE operation. Sets the expiration of the key specified in the `key` parameter to be the number of milliseconds specified in the `ttl` parameter.
+     * @param key THe key to set the expiration of.
+     * @param ttl The number of milliseconds from now until the key expires.
+     */
     public async expire(key: string, ttl: number): Promise<void> {
         const response = await this.sendCommand(`EXPIRE ${key} ${ttl}\n`);
         if (MycoKVError.hasError(response)) throw new MycoKVError(response);
     }
 
+    /**
+     * Processes a MycoKV DELETE operation. Deletes the key specified in the `key` parameter. If the key does not exist, the operation will be ignored.
+     * @param key The key to delete.
+     */
     public async delete(key: string): Promise<void> {
         const value = await this.sendCommand(`DELETE ${key}\n`);
         if (MycoKVError.hasError(value)) {
@@ -119,6 +173,9 @@ export default class MycoKV {
         }
     }
 
+    /**
+     * Disconnects this MycoKV client from the MycoKV server. This operation should always be performed when you are finished using the client, otherwise the connection will remain open indefinitely.
+     */
     public async disconnect(): Promise<void> {
         await this.client.destroy();
     }

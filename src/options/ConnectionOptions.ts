@@ -1,5 +1,11 @@
 interface ConnectionOptions {
+    /**
+     * The host of the MycoKV server to connect to. Defaults to localhost.
+     */
     host: string;
+    /**
+     * The port of the MycoKV server to connect to. Defaults to 6922.
+     */
     port: number;
 }
 

@@ -7,6 +7,7 @@ class ValueTypeError extends Error {
             }`
         );
         this.name = "ValueTypeError";
+        Object.setPrototypeOf(this, ValueTypeError.prototype);
     }
 }
 
