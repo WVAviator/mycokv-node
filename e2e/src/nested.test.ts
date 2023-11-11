@@ -47,7 +47,7 @@ describe("nested keys get, put, delete", () => {
         });
     });
 
-    xit("should still return nested keys if parent value deleted", async () => {
+    it("should still return nested keys if parent value deleted", async () => {
         await myco.delete("kitchen.toaster");
         const nestedAll = await myco.get("kitchen.*");
         expect(nestedAll).toEqual({
@@ -57,7 +57,7 @@ describe("nested keys get, put, delete", () => {
         });
     });
 
-    xit("should recursively delete unused keys", async () => {
+    it("should recursively delete unused keys", async () => {
         await myco.delete("kitchen.dishwasher.top_shelf.plates");
         const nestedAll = await myco.get("kitchen.*");
         expect(nestedAll).toEqual({

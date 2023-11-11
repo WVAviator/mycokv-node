@@ -7,7 +7,7 @@
         "build": "tsc",
         "prepublishOnly": "yarn build",
         "setup:e2e": "yarn build && yarn link && cd e2e && yarn install && yarn link mycokv-node && cd ..",
-        "test:e2e": "(cd e2e && yarn test)"
+        "test:e2e": "(cd e2e && yarn test --detectOpenHandles)"
     },
     "author": "WVAviator",
     "license": "MIT",

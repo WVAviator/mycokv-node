@@ -96,11 +96,7 @@ export default class MycoKV {
     }
 
     public async disconnect(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.client.end(() => {
-                resolve();
-            });
-        });
+        await this.client.destroy();
     }
 
     private sendCommand(command: string): Promise<string> {
@@ -135,15 +131,9 @@ export default class MycoKV {
         if (value === "null") return null;
         if (value === "true") return true;
         if (value === "false") return false;
-        // if (value.startsWith('"') && value.endsWith('"')) {
-        //     return value.slice(1, -1);
-        // }
         if (value.match(/^-?\d+$/)) return parseInt(value);
         if (value.match(/^-?\d+\.\d+$/)) return parseFloat(value);
-        return value;
-        // throw new ValueTypeError(
-        //     value,
-        //     "Invalid value type returned by MycoKV server."
-        // );
+
+        return value.slice(1, -1);
     }
 }
