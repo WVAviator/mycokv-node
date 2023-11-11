@@ -1,4 +1,4 @@
-import { MycoKV, MycoKVError } from "mycokv-node";
+import { MycoKV, MycoKVError } from "../src";
 
 describe("single keys get, put, delete", () => {
     let myco: MycoKV;

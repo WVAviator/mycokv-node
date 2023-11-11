@@ -1,4 +1,4 @@
-import { MycoKV } from "mycokv-node";
+import { MycoKV } from "../src";
 
 describe("nested keys get, put, delete", () => {
     let myco: MycoKV;

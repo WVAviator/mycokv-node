@@ -6,8 +6,7 @@
     "scripts": {
         "build": "tsc",
         "prepublishOnly": "yarn build",
-        "setup:e2e": "yarn build && yarn link && cd e2e && yarn install && yarn link mycokv-node && cd ..",
-        "test:e2e": "(cd e2e && yarn test --detectOpenHandles --maxWorkers 1)"
+        "test": "jest --detectOpenHandles --maxWorkers 1"
     },
     "author": "WVAviator",
     "license": "MIT",
@@ -17,6 +16,9 @@
     "devDependencies": {
         "@types/node": "^20.4.2",
         "ts-node": "^10.9.1",
-        "typescript": "^5.1.6"
+        "typescript": "^5.1.6",
+        "@types/jest": "^29.5.3",
+        "ts-jest": "^29.1.1",
+        "jest": "^29.0.0"
     }
 }
