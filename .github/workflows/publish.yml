@@ -32,21 +32,17 @@ jobs:
               run: |
                   TAG_VERSION=${GITHUB_REF#refs/tags/v}
                   echo "Extracted version: $TAG_VERSION"
-
-            - name: Update Package.json Version
-              run: |
                   jq '.version="'$TAG_VERSION'"' package.json > temp.json && mv temp.json package.json
                   echo "Updated package.json version to $TAG_VERSION"
 
             - name: Commit Version Bump
-              if: github.ref == 'refs/heads/main'
               run: |
                   git config user.name 'github-actions[bot]'
                   git config user.email 'github-actions[bot]@users.noreply.github.com'
                   git add package.json
                   git commit -m "bump package version [skip ci]"
                   git push
-                  echo "Committed updated package.json file to main branch"
+                  echo "Committed updated package.json file to active branch"
 
             - name: Publish to npm
               run: yarn publish --non-interactive
