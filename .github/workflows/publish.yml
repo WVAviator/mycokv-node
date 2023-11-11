@@ -21,18 +21,34 @@ jobs:
               with:
                   node-version: "16.x" # Use the version of Node.js that your project requires
                   registry-url: "https://registry.npmjs.org/"
-
-            - run: yarn install
-            - run: yarn build
-            - run: yarn test
+            - name: Install Dependencies
+              run: yarn install
+            - name: Build and Test
+              run: |
+                  yarn build
+                  yarn test
 
             - name: Extract Version from Tag
               run: |
                   TAG_VERSION=${GITHUB_REF#refs/tags/v}
                   echo "Extracted version: $TAG_VERSION"
+
+            - name: Update Package.json Version
+              run: |
                   jq '.version="'$TAG_VERSION'"' package.json > temp.json && mv temp.json package.json
+                  echo "Updated package.json version to $TAG_VERSION"
+
+            - name: Commit Version Bump
+              if: github.ref == 'refs/heads/main'
+              run: |
+                  git config user.name 'github-actions[bot]'
+                  git config user.email 'github-actions[bot]@users.noreply.github.com'
+                  git add package.json
+                  git commit -m "bump package version [skip ci]"
+                  git push
+                  echo "Committed updated package.json file to main branch"
 
             - name: Publish to npm
-              run: yarn publish --non-interactive --dry-run
+              run: yarn publish --non-interactive
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
