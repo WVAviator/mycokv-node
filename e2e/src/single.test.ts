@@ -1,4 +1,4 @@
-import { MycoKV } from "mycokv-node";
+import { MycoKV, MycoKVError } from "mycokv-node";
 
 describe("single keys get, put, delete", () => {
     let myco: MycoKV;
@@ -44,5 +44,28 @@ describe("single keys get, put, delete", () => {
         expect(get).toEqual(null);
 
         await myco.delete("foo");
+    });
+
+    it("should put and get a single value with an expiration", async () => {
+        await myco.put("foo", "bar", {
+            ttl: 100,
+        });
+        const get = await myco.get("foo");
+        expect(get).toEqual("bar");
+
+        await new Promise((resolve) => setTimeout(resolve, 101));
+
+        await expect(myco.get("foo")).rejects.toThrow(MycoKVError);
+    });
+
+    it("should allow adding expiration to an existing key", async () => {
+        await myco.put("foo", "bar");
+        await myco.expire("foo", 100);
+        const get = await myco.get("foo");
+        expect(get).toEqual("bar");
+
+        await new Promise((resolve) => setTimeout(resolve, 101));
+
+        await expect(myco.get("foo")).rejects.toThrow(MycoKVError);
     });
 });

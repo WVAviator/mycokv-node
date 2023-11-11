@@ -4,6 +4,8 @@ import ConnectionOptions, {
 } from "./ConnectionOptions";
 import ConnectionError from "./errors/ConnectionError";
 import ValueTypeError from "./errors/ValueTypeError";
+import MycoKVError from "./errors/MycoKVError";
+import { PutOptions } from "./options/PutOptions";
 
 export default class MycoKV {
     private responseResolver:
@@ -64,6 +66,8 @@ export default class MycoKV {
         const keyParts = key.split(".");
         if (keyParts.length > 1 && keyParts.at(-1)?.startsWith("*")) {
             const responseJson = await this.sendCommand(`GET ${key}\n`);
+            if (MycoKVError.hasError(responseJson))
+                throw new MycoKVError(responseJson);
             try {
                 const response = JSON.parse(responseJson);
                 return response;
@@ -71,28 +75,48 @@ export default class MycoKV {
                 return responseJson;
             }
         }
-        //TODO: Handle errors
+
         const response = await this.sendCommand(`GET ${key}\n`);
+        if (MycoKVError.hasError(response)) throw new MycoKVError(response);
         return this.parseValue(response);
     }
 
     public async put<T extends string | number | boolean | null>(
         key: string,
-        value: T
+        value: T,
+        options: Partial<PutOptions> = {}
     ): Promise<T> {
         const response = await this.sendCommand(
             `PUT ${key} ${this.stringifyValue(value)}\n`
         );
 
-        //TODO: Handle errors
+        if (MycoKVError.hasError(response)) throw new MycoKVError(response);
+
+        if (options.ttl) {
+            const expireResponse = await this.sendCommand(
+                `EXPIRE ${key} ${options.ttl}\n`
+            );
+            if (MycoKVError.hasError(expireResponse))
+                throw new MycoKVError(expireResponse);
+        }
 
         return this.parseValue(response) as T;
     }
 
-    public async delete(key: string): Promise<unknown> {
-        //TODO: Handle errors
+    public async expire(key: string, ttl: number): Promise<void> {
+        const response = await this.sendCommand(`EXPIRE ${key} ${ttl}\n`);
+        if (MycoKVError.hasError(response)) throw new MycoKVError(response);
+    }
+
+    public async delete(key: string): Promise<void> {
         const value = await this.sendCommand(`DELETE ${key}\n`);
-        return this.parseValue(value);
+        if (MycoKVError.hasError(value)) {
+            const error = new MycoKVError(value);
+            // Ignore error if key not found
+            if (error.code === "E09") return;
+
+            throw error;
+        }
     }
 
     public async disconnect(): Promise<void> {
