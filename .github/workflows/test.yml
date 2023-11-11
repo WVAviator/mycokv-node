@@ -8,7 +8,7 @@ on:
 
 jobs:
     build:
-        runs-on: ${{ matrix.os }}
+        runs-on: ubuntu-latest
         services:
             mycokv:
                 image: wvaviator/mycokv:latest
@@ -17,8 +17,6 @@ jobs:
         strategy:
             matrix:
                 node-version: [16.x, 18.x, 20.x]
-                os: [ubuntu-latest, windows-latest, macos-latest]
-
         steps:
             - uses: actions/checkout@v3
             - name: Use Node.js ${{ matrix.node-version }}
