@@ -19,7 +19,7 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v3
               with:
-                  node-version: "16.x" # Use the version of Node.js that your project requires
+                  node-version: "16.x"
                   registry-url: "https://registry.npmjs.org/"
 
             - name: Install Dependencies
@@ -37,7 +37,7 @@ jobs:
                   jq '.version="'$TAG_VERSION'"' package.json > temp.json && mv temp.json package.json
                   echo "Updated package.json version to $TAG_VERSION"
 
-            - name: Commmit Updated package.json
+            - name: Commmit package.json to Main Branch
               run: |
                   git config user.name 'github-actions[bot]'
                   git config user.email 'github-actions[bot]@users.noreply.github.com'
