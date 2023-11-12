@@ -205,8 +205,9 @@ const cups = (await myco.get("kitchen.cabinet.cups")) as number;
 
 MycoKV and mycokv-node are both in active development, and any contributions are welcome. You can contribute by providing any of the following:
 
-Suggesting new features or improvements
-Reporting bugs or issues
-Contributing code or design decisions
-Providing feedback on existing or developing features
+- Suggesting new features or improvements
+- Reporting bugs or issues
+- Contributing code or design decisions
+- Providing feedback on existing or developing features
+
 Please reach out if you have any questions!
